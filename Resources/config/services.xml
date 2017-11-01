@@ -9,7 +9,8 @@
         <service id="gtt.doctrine_auditable.event.auditable_listener" class="Gtt\Bundle\DoctrineAdapterBundle\Event\AuditableListener">
             <argument type="service" id="security.token_storage" />
             <argument type="service" id="gtt.doctrine_auditable.mapping.reader.cached_annotation" />
-            <tag name="doctrine.event_subscriber" />
+            <argument type="string">%gtt.doctrine_auditable.deleted.value%</argument>
+            <tag name="doctrine.event_listener" event="onFlush" />
         </service>
 
         <service id="gtt.doctrine_auditable.mapping.reader.annotation" class="Gtt\Bundle\DoctrineAdapterBundle\Mapping\Reader\Annotation" public="false">

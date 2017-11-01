@@ -21,10 +21,13 @@ class DoctrineAuditableExtension extends Extension
     /**
      * {@inheritdoc}
      */
-    public function load(array $config, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container)
     {
+        $config = $this->processConfiguration(new Configuration(), $configs);
         $locator = new FileLocator(__DIR__ . '/../Resources/config');
         $loader  = new XmlFileLoader($container, $locator);
+
+        $container->setParameter("gtt.doctrine_auditable.deleted.value", $config['deleted_value']);
 
         $loader->load('services.xml');
     }

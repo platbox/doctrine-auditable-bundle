@@ -58,15 +58,24 @@ class AuditableListener implements EventSubscriber
     protected $configs;
 
     /**
+     * Deleted value
+     *
+     * @var string
+     */
+    protected $deletedValue;
+
+    /**
      * AuditableListener constructor.
      *
      * @param TokenStorageInterface $tokenStorage Token storage
      * @param AnnotationInterface   $reader       Annotation reader
+     * @param string                $deletedValue Value for deleted entity
      */
-    public function __construct(TokenStorageInterface $tokenStorage, AnnotationInterface $reader)
+    public function __construct(TokenStorageInterface $tokenStorage, AnnotationInterface $reader, string $deletedValue)
     {
         $this->reader       = $reader;
         $this->tokenStorage = $tokenStorage;
+        $this->deletedValue = $deletedValue;
     }
 
     /**
@@ -94,6 +103,47 @@ class AuditableListener implements EventSubscriber
         foreach ($uow->getScheduledEntityUpdates() as $entity) {
             $this->createLogEntry($entity);
         }
+
+        foreach ($uow->getScheduledEntityInsertions() as $entity) {
+            $this->createLogEntry($entity);
+        }
+
+        foreach ($uow->getScheduledEntityDeletions() as $entity) {
+            $this->createLogEntryByPrimaryKey($entity);
+        }
+    }
+
+    protected function createLogEntryByPrimaryKey($entity)
+    {
+        $class = get_class($entity);
+        $meta  = $this->entityManager->getClassMetadata($class);
+        $uow       = $this->entityManager->getUnitOfWork();
+        $comment = null;
+
+        // Filter embedded documents
+        if (isset($meta->isEmbeddedDocument) && $meta->isEmbeddedDocument) {
+            return;
+        }
+
+        /** @var Group $group */
+        $group = $this->createGroup(
+            new DateTime,
+            $this->getUsername(),
+            $meta->name,
+            $this->readEntityId($entity),
+            $comment
+        );
+        $this->entityManager->persist($group);
+
+        $groupClassMetadata = $this->entityManager->getClassMetadata(get_class($group));
+        $uow->computeChangeSet($groupClassMetadata, $group);
+
+        /** @var Entry $entry */
+        $entry = $this->createEntry($group, 'id', false, $this->readEntityId($entity), $this->deletedValue);
+        $this->entityManager->persist($entry);
+
+        $entryClassMetadata = $this->entityManager->getClassMetadata(get_class($entry));
+        $uow->computeChangeSet($entryClassMetadata, $entry);
     }
 
     /**

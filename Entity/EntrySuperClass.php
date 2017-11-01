@@ -51,7 +51,7 @@ class EntrySuperClass
      *
      * @var mixed
      *
-     * @ORM\Column(name="value_before", type="string", length=255)
+     * @ORM\Column(name="value_before", type="string", length=255, nullable=true)
      */
     protected $valueBefore;
 
@@ -69,7 +69,7 @@ class EntrySuperClass
      *
      * @var string
      *
-     * @ORM\Column(name="related_string_before", type="string", length=255)
+     * @ORM\Column(name="related_string_before", type="string", length=255, nullable=true)
      */
     protected $relatedStringBefore;
 
@@ -78,7 +78,7 @@ class EntrySuperClass
      *
      * @var string
      *
-     * @ORM\Column(name="related_string_after", type="string", length=255)
+     * @ORM\Column(name="related_string_after", type="string", length=255, nullable=true)
      */
     protected $relatedStringAfter;
 
